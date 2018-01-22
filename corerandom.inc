@@ -6,8 +6,20 @@ static simplex_seed = INITIAL_SEED;
 stock srandom(seed)
     simplex_seed = seed;
 
-stock core_random(max)
+stock core_random(max, min = 0)
 {
+    new result = nrandom(max);
+    
+    simplex_seed = simplex_seed * IL_RMULT + 12345;
+    
+    return result;
+}
+
+stock nrandom(max, min = 0)
+{
+    if(min > max)
+       min ^= max, max ^= min, min ^= max;
+    
     if(simplex_seed == INITIAL_SEED)
         simplex_seed = gettime();
     
@@ -17,19 +29,17 @@ stock core_random(max)
     lo = simplex_seed    & 0xffff;
     hi = simplex_seed   >> 16;
     ll = lo * (IL_RMULT  & 0xffff);
-    lh = lo * (IL_RMULT >> 16    );
+    lh = lo * (IL_RMULT >> 16);
     hl = hi * (IL_RMULT  & 0xffff);
-    hh = hi * (IL_RMULT >> 16    );
+    hh = hi * (IL_RMULT >> 16);
     
     result = ((ll + 12345) >> 16) + lh + hl + (hh << 16);
     result &= ~(-2147483647);
     
     if (max != 0)
-        result %= max;
+        result %= (max - min);
     
-    simplex_seed = simplex_seed * IL_RMULT + 12345;
-    
-    return result;
+    return result + min;
 }
 
 #if defined _ALS_random
